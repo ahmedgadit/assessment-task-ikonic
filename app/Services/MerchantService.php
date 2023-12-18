@@ -19,8 +19,12 @@ class MerchantService
      * @return Merchant
      */
     public function register(array $data): Merchant
-    {
-        // TODO: Complete this method
+    {   
+        $userPayload = ['name'=>$data['name'], 'email' => $data['email'], 'password' => $data['api_key'], 'type' => User::TYPE_MERCHANT];
+        $user = User::create($userPayload);
+        $merchantPayload = ['display_name' => $data['name'], 'domain' => $data['domain']];
+        $merchant = $user->merchant()->create($merchantPayload);
+        return $merchant;
     }
 
     /**

@@ -35,7 +35,10 @@ class MerchantService
      */
     public function updateMerchant(User $user, array $data)
     {
-        // TODO: Complete this method
+        $merchant = $user->merchant()->update([
+            'domain' => $data['domain'],
+            'display_name' => $data['name']
+        ]);
     }
 
     /**
@@ -47,7 +50,8 @@ class MerchantService
      */
     public function findMerchantByEmail(string $email): ?Merchant
     {
-        // TODO: Complete this method
+        $user = User::where('email', $email)->with('merchant')->first();
+        return $user->merchant ?? null;
     }
 
     /**
@@ -59,6 +63,9 @@ class MerchantService
      */
     public function payout(Affiliate $affiliate)
     {
-        // TODO: Complete this method
+        $orders = $affiliate->orders()->where('payout_status', Order::STATUS_UNPAID)->get();
+        foreach($orders as $order) {
+            PayoutOrderJob::dispatch($order);
+        }
     }
 }

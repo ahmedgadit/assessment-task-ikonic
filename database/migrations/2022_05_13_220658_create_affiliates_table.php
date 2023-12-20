@@ -17,8 +17,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id');
             $table->foreignId('merchant_id');
-            // TODO: Replace me with a brief explanation of why floats aren't the correct data type, and replace with the correct data type.
-            $table->float('commission_rate');
+            // Instead of float, use decimal with precision and scale
+            $table->decimal('commission_rate', 8, 2); // Adjust precision and scale as needed
             $table->string('discount_code');
             $table->timestamps();
         });

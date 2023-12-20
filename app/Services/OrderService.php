@@ -44,16 +44,12 @@ class OrderService
         $orderPayload = [
             'subtotal' => $data['subtotal_price'],
             'merchant_id' => $merchant->id,
-            'affiliate_id' => null, 
-            'commission_owed' => $data['subtotal_price'] * 0.1,
+            'affiliate_id' => $affiliate->id ?? null, 
+            'commission_owed' => $data['subtotal_price'] * ($affiliate->commission_rate ?? 0.1),
             'discount_code' => $data['discount_code'],
             'external_order_id' => $data['order_id']
         ];
         $order = Order::create($orderPayload);
-    }
-
-    public function getOrderByExternalOrderId($externalOrderId)
-    {
-        return Order::where('external_order_id', $externalOrderId)->first();
+        return $order;
     }
 }

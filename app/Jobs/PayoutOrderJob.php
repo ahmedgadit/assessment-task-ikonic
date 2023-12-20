@@ -4,24 +4,26 @@ namespace App\Jobs;
 
 use App\Models\Order;
 use App\Services\ApiService;
-use App\Services\OrderService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\DB;
+use RuntimeException;
 
 class PayoutOrderJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public $order;
-
-    public function __construct(Order $order)
-    {
-        $this->order = $order;
+    /**
+     * Create a new job instance.
+     *
+     * @return void
+     */
+    public function __construct(
+        public Order $order
+    ) {
     }
 
     /**
@@ -30,8 +32,24 @@ class PayoutOrderJob implements ShouldQueue
      *
      * @return void
      */
-    public function handle(OrderService $orderService)
+    public function handle(ApiService $apiService)
     {
-        $orderService->payout($this->order);
+        try {
+            $apiService->sendPayout($this->order->affiliate->user->email, $this->order->commission_owed);
+            $this->order->update(['payout_status' => Order::STATUS_PAID]);
+        } catch (RuntimeException $e) {
+            $this->failed($e);
+        }
+    }
+
+
+    /**
+     * Handle a job failure.
+     */
+    public function failed(RuntimeException $exception): void
+    {
+        // Send user notification of failure, etc...
+        $this->order->update(['payout_status' => Order::STATUS_UNPAID]);
+        throw $exception;
     }
 }
